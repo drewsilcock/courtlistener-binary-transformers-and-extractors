@@ -36,6 +36,7 @@ def heartbeat():
     :return: success response
     :type: dict
     """
+    import seal_rookery
     return jsonify({"success": True, "msg": "Docker container running."})
 
 

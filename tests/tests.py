@@ -8,11 +8,13 @@ from __future__ import (
 
 import json
 import os
+import time
 import unittest
 from ast import literal_eval
 from glob import iglob
 from unittest import TestCase
 
+import docker
 import requests
 
 
@@ -29,21 +31,39 @@ class DockerTestBase(TestCase):
     for k, v in doc_json.items():
         doc_answers[k] = v
 
-    # def setUp(self):
-    #     client = docker.from_env()
-    #     client.containers.run(
-    #         "freelawproject/binary-transformers-and-extractors:latest",
-    #         ports={"80/tcp": ("0.0.0.0", 80)},
-    #         detach=True,
-    #         auto_remove=True,
-    #     )
-    #     time.sleep(2)
+    def setUp(self):
+        client = docker.from_env()
+        client.containers.run(
+            "freelawproject/seal-rookery:latest",
+            name="seal-rookery",
+            detach=True,
+            auto_remove=True,
+            volumes={
+                "seal-rookery": {
+                    "bind": "/usr/local/lib/python2.7/site-packages/seal_rookery",
+                    "mode": "ro",
+                }
+            },
+        )
+        client.containers.run(
+            "freelawproject/binary-transformers-and-extractors:latest",
+            ports={"80/tcp": ("0.0.0.0", 80)},
+            detach=True,
+            auto_remove=True,
+            volumes={
+                "seal-rookery": {
+                    "bind": "/usr/local/lib/python3.7/site-packages/seal_rookery",
+                    "mode": "ro",
+                }
+            },
+        )
+        time.sleep(2)
 
-    # def tearDown(self):
-    #     """Tear down containers"""
-    #     client = docker.from_env()
-    #     for container in client.containers.list():
-    #         container.stop()
+    def tearDown(self):
+        """Tear down containers"""
+        client = docker.from_env()
+        for container in client.containers.list():
+            container.stop()
 
     def send_file_to_bte(self, filepath, do_ocr=False):
         """Send file to extract doc content method.
