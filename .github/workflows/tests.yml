@@ -22,10 +22,8 @@ jobs:
         pip install -r requirements.txt
     - name: Build the dockerfile
       run: docker build . --file Dockerfile --tag freelawproject/binary-transformers-and-extractors:latest
-    - name: Create docker network
-      run: docker network create -d bridge --attachable cl_net_overlay
-    - name: Run docker-compose
-      run: docker-compose up -d
+    - name: Run docker image
+      run: docker run -p 80:80/tcp freelawproject/binary-transformers-and-extractors:latest -d
     - name: Run tests
       run: |
         python tests/tests.py DocumentConversionTests
